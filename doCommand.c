@@ -2097,9 +2097,12 @@ void GetIniData(char* sSection, char* sKey, char* sFile, char* sRet)
         int bFound = 0;
         FILE* in;
         char* sTmpFileName = malloc(1024); 
-        fixFileName(sFile, sTmpFileName);
 
         in = fopen(sTmpFileName, "r");
+        if(in == NULL)
+        {
+          return;
+        }
         sprintf(sComp, "[%s]", sSection);
         while (fgets(sLine, 1024, in) != NULL)
             {

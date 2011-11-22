@@ -158,12 +158,19 @@ char *url_encode(char *str) {
     /** Called when the activity is first created. */
     int main(int argc, char** argv)
         {
+        char sIniFile[1024] = "";
         //setContentView(R.layout.main);
 
         //fixScreenOrientation();
+        if(argc > 1)
+        {
+          strcpy(sIniFile, argv[1]);
+        } 
+        else {
+	  strcat(sIniFile, "/SUTAgent.ini");
+        }
 
 
-        puts("Made it here!1\n");
         int CmdSockFD = socket(AF_INET, SOCK_STREAM, 0);
         struct sockaddr_in cmdAddress;
         cmdAddress.sin_family = AF_INET;
@@ -179,7 +186,6 @@ char *url_encode(char *str) {
           return 1;
         }
 
-        puts("Made it here!2\n");
         int DataSockFD = socket(AF_INET, SOCK_STREAM, 0);
         struct sockaddr_in dataAddress;
         dataAddress.sin_family = AF_INET;
@@ -194,16 +200,10 @@ char *url_encode(char *str) {
           puts("Data Port currently in use.\n");
           return 1;
         }
-
-        puts("Made it here!3\n");
-
         // Get configuration settings from "ini" file
         //FILE dir = getFilesDir();
         //File iniFile = new File(dir, "SUTAgent.ini");
-        char sIniFile[1024] = "";
         //getcwd(sIniFile, 1024);
-        strcat(sIniFile, "/SUTAgent.ini");
-        puts("BAM!\n");
         printf("sIniFile = %s\n", sIniFile);
 
         GetIniData("Registration Server", "IPAddr", sIniFile, RegSvrIPAddr) ;
@@ -240,6 +240,8 @@ char *url_encode(char *str) {
         char mac[18];
         char IP[1024];
         getLocalIpAddress(IP, mac);
+        // strcpy(mac, "DE:AD:DE:AD");
+        //strcpy(IP, "127.0.0.1");
         printf("IP = %s\n",IP);
         printf("MAC = %s\n", mac);
         strcpy(uniqueID, mac);
@@ -254,7 +256,7 @@ char *url_encode(char *str) {
         GetOSInfo(osInfo);
         sprintf(sConfig, "%s\t%s%s",sConfig, osInfo, lineSep);
         sprintf(sConfig, "%sScreen Info%s",sConfig, lineSep);
-       // int [] xy = dc.GetScreenXY();
+        // int [] xy = dc.GetScreenXY();
         sprintf(sConfig, "%s\t Width: 0%s",sConfig, lineSep);
         sprintf(sConfig, "%s\t Height: 0%s",sConfig, lineSep);
         sprintf(sConfig, "%sMemory Info:%s",sConfig, lineSep);
