@@ -39,12 +39,15 @@
 #define FILESDIR "/"
 #include <netinet/in.h>
 #include <string.h>
-#include <arpa/inet.h>
+//#include <arpa/inet.h>
 #include <sys/types.h>
 #include <ifaddrs.h>
 #include <stdio.h>
 #include <sys/socket.h>
 #include <pthread.h>
+#include <sys/ioctl.h>
+#include <sys/types.h>
+#include <net/if.h>
 #include "doCommand.h"
 #include "SUTAgent.h"
 #include "RunCmdThread.h"
@@ -695,54 +698,27 @@ void doRegisterDevice() {
     return;
 
 }
-/*
-    // this starts the listener service for the command and data channels
-    private Runnable doStartService = new Runnable()
-        {
-        public void run()
-            {
-            Intent listenerService = new Intent();
-            listenerService.setAction("com.mozilla.SUTAgentC.service.LISTENER_SERVICE");
-            startService(listenerService);
-            }
-        };
-*/
 
-//Function taken from http://stackoverflow.com/questions/212528/linux-c-get-the-ip-address-of-local-computer
-    void getLocalIpAddress(char* sRet, char* mac)
+    void getLocalIpAddress(char* sRet, char* mac){
+      int s;
+      struct ifreq buffer;
+      struct ifreq ipbuffer;
+      s = socket(PF_INET, SOCK_DGRAM, 0);
+      memset(&buffer, 0x00, sizeof(buffer));
+      memset(&ipbuffer, 0x00, sizeof(ipbuffer));
+      strcpy(buffer.ifr_name, "eth0");
+      ioctl(s, SIOCGIFHWADDR, &buffer);
+      strcpy(ipbuffer.ifr_name, "eth0");
+      ioctl(s, SIOCGIFADDR, &ipbuffer);
+      close(s);
+      for( s = 0; s<5; s++)
       {
-        struct ifaddrs* ifAddrStruct=NULL;
-        struct ifaddrs* ifa=NULL;
-        void* tmpAddrPtr=NULL;
-        char* ifa_name=NULL;
-        getifaddrs(&ifAddrStruct);
-        for (ifa = ifAddrStruct; ifa != NULL; ifa = ifa->ifa_next) {
-          if (ifa ->ifa_addr->sa_family==AF_INET) { // check it is IP4
-            // is a valid IP4 Address
-            tmpAddrPtr=&((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
-            char addressBuffer[INET_ADDRSTRLEN];
-            inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
-            ifa_name = ifa->ifa_name;
-            strcpy(sRet, addressBuffer);
-          } else if (ifa->ifa_addr->sa_family==AF_INET6) { // check it is IP6
-            // is a valid IP6 Address
-            tmpAddrPtr=&((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
-            char addressBuffer[INET6_ADDRSTRLEN];
-            inet_ntop(AF_INET6, tmpAddrPtr, addressBuffer, INET6_ADDRSTRLEN);
-            ifa_name = ifa->ifa_name;
-            strcpy(sRet, addressBuffer);
-          } 
-        }
-        for (ifa = ifAddrStruct; ifa != NULL; ifa = ifa->ifa_next) {
-          int family = ifa->ifa_addr->sa_family;
-          /* removed family == AF_LINK from if statement*/
-          if(strcmp(ifa_name, ifa->ifa_name) == 0){
-            unsigned char* ptr = (unsigned char*)(((struct sockaddr *)ifa->ifa_addr)->sa_data);
-            ptr+=9;
-            sprintf( mac, "%02x:%02x:%02x:%02x:%02x:%02x\n", *ptr, *(ptr+1), *(ptr+2), *(ptr+3), *(ptr+4),*(ptr+5));
-          }
-        }
-
-        if (ifAddrStruct!=NULL) freeifaddrs(ifAddrStruct);
-        return;
+        sprintf(mac, "%s%.2X:", mac, (unsigned char)buffer.ifr_hwaddr.sa_data[s]);
       }
+      sprintf(mac, "%s%.2X", mac, (unsigned char)buffer.ifr_hwaddr.sa_data[s]);
+      for( s = 2; s<5; s++)
+      {
+        sprintf(sRet, "%s%i.", sRet, (unsigned char)ipbuffer.ifr_addr.sa_data[s]);
+      }
+      sprintf(sRet, "%s%i", sRet, (unsigned char)ipbuffer.ifr_addr.sa_data[s]);
+    }
