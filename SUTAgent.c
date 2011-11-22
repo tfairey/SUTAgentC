@@ -733,7 +733,8 @@ void doRegisterDevice() {
         }
         for (ifa = ifAddrStruct; ifa != NULL; ifa = ifa->ifa_next) {
           int family = ifa->ifa_addr->sa_family;
-          if(family == AF_LINK && strcmp(ifa_name, ifa->ifa_name) == 0){
+          /* removed family == AF_LINK from if statement*/
+          if(strcmp(ifa_name, ifa->ifa_name) == 0){
             unsigned char* ptr = (unsigned char*)(((struct sockaddr *)ifa->ifa_addr)->sa_data);
             ptr+=9;
             sprintf( mac, "%02x:%02x:%02x:%02x:%02x:%02x\n", *ptr, *(ptr+1), *(ptr+2), *(ptr+3), *(ptr+4),*(ptr+5));
