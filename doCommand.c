@@ -36,7 +36,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "DoCommand.h"
+#include "doCommand.h"
 #include "CmdWorkerThread.h"
 #include "RedirOutputThread.h"
 #include <sys/socket.h>
